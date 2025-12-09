@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculateur de ROI – ePack Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --epack-bg: #174e4a;
+      --epack-bg-alt: #123a37;
+      --epack-card: #ffffff;
+      --epack-green: #7ee13b;
+      --epack-green-dark: #5fb52d;
+      --epack-text: #ffffff;
+      --epack-text-muted: #cfe2dd;
+      --border-soft: rgba(255,255,255,0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #215f59 0, var(--epack-bg) 42%, #0f3633 100%);
+      color: var(--epack-text);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* HEADER */
+    .top-bar {
+      padding: 12px 24px 10px;
+      border-bottom: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .logo img {
+      height: 70px;  /* logo plus gros */
+      max-width: 100%;
+      display: block;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .btn-demo {
+      border-radius: 999px;
+      border: none;
+      background: var(--epack-green);
+      color: #104029;
+      font-weight: 600;
+      padding: 8px 18px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    .btn-demo:hover { background: var(--epack-green-dark); }
+
+    .wrapper {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    /* LAYOUT 2 COLONNES */
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .top-bar {
+        flex-direction: column;
+        align-items: center;
+      }
+      .header-right {
+        justify-content: center;
+      }
+    }
+
+    /* COLONNE GAUCHE (hero) */
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;   /* centré horizontalement */
+      text-align: center;
+      padding: 8px 8px 8px 0;
+      margin-top: 8px;       /* remonté en haut de page */
+    }
+
+    .hero-tagline {
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-size: 0.8rem;
+      color: var(--epack-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .hero-title {
+      font-size: 2.4rem;
+      line-height: 1.15;
+      margin: 10px 0 8px;
+    }
+
+    .hero-subtitle {
+      font-size: 1.02rem;
+      color: var(--epack-text-muted);
+      max-width: 520px;
+      margin: 10px auto 18px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .btn-primary {
+      border-radius: 999px;
+      border: none;
+      background: var(--epack-green);
+      color: #104029;
+      font-weight: 600;
+      padding: 10px 22px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--epack-green-dark); }
+
+    /* CARTES CALCULATEUR (colonne droite) */
+    .card {
+      background: var(--epack-card);
+      color: #102521;
+      border-radius: 18px;
+      padding: 16px 18px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.26);
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.02rem;
+    }
+    .card p {
+      margin: 0 0 10px;
+      font-size: 0.87rem;
+      color: #4f5f5a;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px 18px;
+    }
+
+    .field { margin-bottom: 8px; }
+
+    label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 3px;
+      color: #22332e;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #d1ddda;
+      font-size: 0.85rem;
+    }
+
+    /* MODULES & BULLES "INCLURE" */
+    .module-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .module-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .module-toggle {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .module-toggle input {
+      display: none;
+    }
+
+    .module-toggle span.bubble {
+      border-radius: 999px;
+      padding: 4px 10px;
+      border: 1px solid #b6cbc4;
+      background: #f4f8f7;
+      color: #4f5f5a;
+      font-weight: 500;
+    }
+
+    .module-toggle input:checked + span.bubble {
+      background: var(--epack-green);
+      border-color: var(--epack-green-dark);
+      color: #104029;
+    }
+
+    .module-explain {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      color: #5a6a65;
+    }
+
+    .btn-calc {
+      margin-top: 8px;
+      border-radius: 999px;
+      border: none;
+      background: var(--epack-green);
+      color: #104029;
+      font-weight: 600;
+      padding: 9px 18px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn-calc:hover { background: var(--epack-green-dark); }
+
+    .results {
+      font-size: 0.86rem;
+      line-height: 1.5;
+    }
+    .results strong { font-weight: 700; }
+    .results .highlight {
+      color: var(--epack-bg-alt);
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 0.8rem;
+    }
+    th, td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #e1ece8;
+      text-align: right;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    tfoot td {
+      font-weight: 700;
+      border-top: 2px solid #b6cbc4;
+      border-bottom: none;
+    }
+
+    .note {
+      font-size: 0.74rem;
+      color: #6a7c76;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header : logo à gauche, bouton démo à droite -->
+  <header class="top-bar">
+    <div class="logo">
+      <!-- Mettre le fichier logo-epackpro.png dans le même dossier -->
+      <img src="logo-epackpro.png" alt="ePackPro" />
+    </div>
+    <div class="header-right">
+      <a
+        class="btn-demo"
+        href="https://outlook.office365.com/book/DmonstrationePackProparNicolasBELEC@epack.onmicrosoft.com/?ismsaljsauthenabled=true"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Demander une démo
+      </a>
+    </div>
+  </header>
+
+  <div class="wrapper">
+    <div class="layout">
+      <!-- Colonne gauche : texte de présentation -->
+      <section class="hero-left">
+        <div class="hero-tagline">CALCULATEUR DE RETOUR SUR INVESTISSEMENT</div>
+        <div class="hero-tagline">EPACKPRO – DIGITALISATION HACCP / ARMPC</div>
+
+        <h1 class="hero-title">
+          Pensé pour vos équipes,<br />
+          pensé pour vos marges.
+        </h1>
+
+        <p class="hero-subtitle">
+          En quelques clics, ajustez les volumes de l’établissement et montrez en direct
+          l’impact d’ePack Pro&nbsp;: heures gagnées, pertes alimentaires évitées et retour
+          sur abonnement.
+        </p>
+
+        <div class="hero-actions">
+          <button class="btn-primary" type="button" onclick="calculateROI()">
+            Calculer le ROI maintenant
+          </button>
+        </div>
+      </section>
+
+      <!-- Colonne droite : calculateur -->
+      <section>
+        <!-- Paramètres globaux -->
+        <div class="card">
+          <h2>Paramètres établissement</h2>
+          <p>Ajustez le taux horaire et le prix d’abonnement pour coller à la réalité du site.</p>
+          <div class="grid">
+            <div class="field">
+              <label for="hourlyWage">Taux horaire moyen (CAD / h)</label>
+              <input id="hourlyWage" type="number" value="20" min="0" step="0.5" />
+            </div>
+            <div class="field">
+              <label for="subPrice">Prix abonnement ePack Pro (CAD / mois)</label>
+              <input id="subPrice" type="number" value="120" min="0" step="1" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Modules -->
+        <div class="card">
+          <h2>Volumes d’activité & modules inclus</h2>
+          <p>Cochez les modules utilisés et ajustez les volumes pour cet établissement.</p>
+
+          <!-- M1 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>1. Relevés de température</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m1_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m1_fridges">Nombre de frigos suivis</label>
+                <input id="m1_fridges" type="number" value="6" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label for="m1_readingsPerDay">Relevés par frigo / jour</label>
+                <input id="m1_readingsPerDay" type="number" value="2" min="0" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: sortir la feuille, lire, écrire, signer, ranger (≈25s par relevé).<br />
+              Méthode ePack Pro&nbsp;: lecture + saisie directe sur tablette (≈8s). Archivage automatique, moins d’erreurs.
+            </div>
+          </div>
+
+          <!-- M2 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>2. Étiquetage des produits</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m2_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m2_labelsPerDay">Étiquettes produits / jour</label>
+                <input id="m2_labelsPerDay" type="number" value="20" min="0" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: réfléchir à la bonne date, écrire produit/date/heure, coller (≈20s).<br />
+              Méthode ePack Pro&nbsp;: choisir le produit dans la liste, imprimer, coller (≈13s). Moins d’erreurs, impression instantanée.
+            </div>
+          </div>
+
+          <!-- M3 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>3. Plan de nettoyage</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m3_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m3_tasksPerDay">Tâches de nettoyage / jour</label>
+                <input id="m3_tasksPerDay" type="number" value="30" min="0" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: lire, cocher, signer, ranger la fiche (≈15s).<br />
+              Méthode ePack Pro&nbsp;: validation rapide sur écran (≈5s), suivi en temps réel, gain de rigueur.
+            </div>
+          </div>
+
+          <!-- M4 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>4. Contrôle des huiles (friteuses)</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m4_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m4_fryers">Nombre de friteuses</label>
+                <input id="m4_fryers" type="number" value="2" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label for="m4_testsPerDay">Tests / friteuse / jour</label>
+                <input id="m4_testsPerDay" type="number" value="1" min="0" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: test + lecture + écriture + signature (≈20s).<br />
+              Méthode ePack Pro&nbsp;: test + saisie (≈13s). Gain léger mais process simplifié.
+            </div>
+          </div>
+
+          <!-- M5 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>5. Checklists équipe</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m5_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m5_actionsPerDay">Actions / jour</label>
+                <input id="m5_actionsPerDay" type="number" value="15" min="0" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: lire la tâche, cocher, mettre l’heure/signature (≈15s).<br />
+              Méthode ePack Pro&nbsp;: validation en un clic (≈5s), traçabilité claire.
+            </div>
+          </div>
+
+          <!-- M6 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>6. Contrôle des DLC – produits préparés</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m6_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m6_prepPerDay">Produits préparés contrôlés / jour</label>
+                <input id="m6_prepPerDay" type="number" value="20" min="0" step="1" />
+              </div>
+              <div class="field">
+                <label for="m6_productValue">Valeur moyenne d’un produit (CAD)</label>
+                <input id="m6_productValue" type="number" value="0.93" min="0" step="0.01" />
+              </div>
+              <div class="field">
+                <label for="m6_wasteRate">Taux de perte estimé (%)</label>
+                <input id="m6_wasteRate" type="number" value="15" min="0" max="100" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: identifier produit, lire l’étiquette, comparer la date, trier/jeter/valider (≈20s).<br />
+              Méthode ePack Pro&nbsp;: liste dynamique triée, alertes automatiques, validation rapide (≈6s). Moins de pertes, meilleure rotation.
+            </div>
+          </div>
+
+          <!-- M7 -->
+          <div class="module">
+            <div class="module-header">
+              <h3>7. Réception des marchandises</h3>
+              <label class="module-toggle">
+                <input type="checkbox" id="m7_enabled" checked />
+                <span class="bubble">Inclure</span>
+              </label>
+            </div>
+            <div class="grid">
+              <div class="field">
+                <label for="m7_deliveriesPerWeek">Livraisons / semaine</label>
+                <input id="m7_deliveriesPerWeek" type="number" value="2" min="0" step="1" />
+              </div>
+            </div>
+            <div class="module-explain">
+              Méthode papier&nbsp;: contrôle physique + fiche à remplir et signer (≈15 min / livraison).<br />
+              Méthode ePack Pro&nbsp;: contrôle physique identique, mais saisie numérique plus rapide et preuve directe.
+            </div>
+          </div>
+
+          <button class="btn-calc" type="button" onclick="calculateROI()">
+            Calculer le ROI avec ces paramètres
+          </button>
+        </div>
+
+        <!-- Résultats -->
+        <div class="card">
+          <h2>Résultats mensuels estimés</h2>
+          <div id="results" class="results">
+            Renseignez les volumes et cliquez sur « Calculer le ROI » pour afficher les résultats.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    function val(id) {
+      const el = document.getElementById(id);
+      const n = parseFloat(el.value);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function isChecked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function calculateROI() {
+      const hourlyWage = val('hourlyWage');
+      const subPrice   = val('subPrice');
+      const daysPerMonth = 30;
+
+      let totalHours = 0;
+      let totalLaborSavings = 0;
+      let totalWasteSavings = 0;
+      const rows = [];
+
+      // M1 – Relevés frigos
+      if (isChecked('m1_enabled')) {
+        const fridges = val('m1_fridges');
+        const readingsPerDay = val('m1_readingsPerDay');
+        const paperSec = 25;
+        const epackSec = 8;
+
+        const paperSecMonth = fridges * readingsPerDay * daysPerMonth * paperSec;
+        const epackSecMonth = fridges * readingsPerDay * daysPerMonth * epackSec;
+        const savedHours = (paperSecMonth - epackSecMonth) / 3600;
+        const savedMoney = savedHours * hourlyWage;
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+
+        rows.push({ label: 'Relevés frigos', hours: savedHours, labor: savedMoney, waste: 0 });
+      }
+
+      // M2 – Étiquetage
+      if (isChecked('m2_enabled')) {
+        const labelsPerDay = val('m2_labelsPerDay');
+        const paperSec = 20;
+        const epackSec = 13;
+
+        const paperSecMonth = labelsPerDay * daysPerMonth * paperSec;
+        const epackSecMonth = labelsPerDay * daysPerMonth * epackSec;
+        const savedHours = (paperSecMonth - epackSecMonth) / 3600;
+        const savedMoney = savedHours * hourlyWage;
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+
+        rows.push({ label: 'Étiquetage produits', hours: savedHours, labor: savedMoney, waste: 0 });
+      }
+
+      // M3 – Plan de nettoyage
+      if (isChecked('m3_enabled')) {
+        const tasksPerDay = val('m3_tasksPerDay');
+        const paperSec = 15;
+        const epackSec = 5;
+
+        const paperSecMonth = tasksPerDay * daysPerMonth * paperSec;
+        const epackSecMonth = tasksPerDay * daysPerMonth * epackSec;
+        const savedHours = (paperSecMonth - epackSecMonth) / 3600;
+        const savedMoney = savedHours * hourlyWage;
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+
+        rows.push({ label: 'Plan de nettoyage', hours: savedHours, labor: savedMoney, waste: 0 });
+      }
+
+      // M4 – Huiles
+      if (isChecked('m4_enabled')) {
+        const fryers = val('m4_fryers');
+        const testsPerDay = val('m4_testsPerDay');
+        const paperSec = 20;
+        const epackSec = 13;
+
+        const paperSecMonth = fryers * testsPerDay * daysPerMonth * paperSec;
+        const epackSecMonth = fryers * testsPerDay * daysPerMonth * epackSec;
+        const savedHours = (paperSecMonth - epackSecMonth) / 3600;
+        const savedMoney = savedHours * hourlyWage;
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+
+        rows.push({ label: 'Contrôle huiles', hours: savedHours, labor: savedMoney, waste: 0 });
+      }
+
+      // M5 – Checklists équipe
+      if (isChecked('m5_enabled')) {
+        const actionsPerDay = val('m5_actionsPerDay');
+        const paperSec = 15;
+        const epackSec = 5;
+
+        const paperSecMonth = actionsPerDay * daysPerMonth * paperSec;
+        const epackSecMonth = actionsPerDay * daysPerMonth * epackSec;
+        const savedHours = (paperSecMonth - epackSecMonth) / 3600;
+        const savedMoney = savedHours * hourlyWage;
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+
+        rows.push({ label: 'Checklists équipe', hours: savedHours, labor: savedMoney, waste: 0 });
+      }
+
+      // M6 – DLC (basé sur 7h + 84 CAD pour 600 produits / mois, ajusté)
+      if (isChecked('m6_enabled')) {
+        const prepPerDay = val('m6_prepPerDay');
+        const productValue = val('m6_productValue');
+        const wasteRatePct = val('m6_wasteRate');
+        const wasteRate = wasteRatePct / 100;
+
+        const productsMonth = prepPerDay * daysPerMonth;
+        const baseProducts = 600;
+        const scale = baseProducts > 0 ? productsMonth / baseProducts : 0;
+
+        const baseSavedHours = 7;
+        const baseWasteSaved = 84;
+
+        const savedHours = baseSavedHours * scale;
+        const savedMoney = savedHours * hourlyWage;
+
+        const wasteSaved = baseWasteSaved * scale *
+          (productValue / 0.93) *
+          (wasteRate / 0.15);
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+        totalWasteSavings += wasteSaved;
+
+        rows.push({ label: 'Contrôle DLC produits préparés', hours: savedHours, labor: savedMoney, waste: wasteSaved });
+      }
+
+      // M7 – Réception marchandises (0,09h pour 2 livraisons / semaine)
+      if (isChecked('m7_enabled')) {
+        const deliveriesPerWeek = val('m7_deliveriesPerWeek');
+        const baseDeliveries = 2;
+        const baseSavedHours = 0.09;
+
+        const scale = baseDeliveries > 0 ? deliveriesPerWeek / baseDeliveries : 0;
+        const savedHours = baseSavedHours * scale;
+        const savedMoney = savedHours * hourlyWage;
+
+        totalHours += savedHours;
+        totalLaborSavings += savedMoney;
+
+        rows.push({ label: 'Réception marchandises', hours: savedHours, labor: savedMoney, waste: 0 });
+      }
+
+      if (rows.length === 0) {
+        document.getElementById('results').innerHTML =
+          'Aucun module sélectionné. Cochez au moins un module pour lancer le calcul.';
+        return;
+      }
+
+      const totalSavings = totalLaborSavings + totalWasteSavings;
+      const netGain = totalSavings - subPrice;
+      const roiMultiple = subPrice > 0 ? totalSavings / subPrice : 0;
+
+      const fmt = (n) => n.toFixed(2);
+
+      let tableHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th>Module</th>
+              <th>Heures gagnées</th>
+              <th>Économie main-d’œuvre (CAD)</th>
+              <th>Pertes évitées (CAD)</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      rows.forEach(r => {
+        tableHtml += `
+          <tr>
+            <td>${r.label}</td>
+            <td>${fmt(r.hours)}</td>
+            <td>${fmt(r.labor)}</td>
+            <td>${fmt(r.waste)}</td>
+          </tr>
+        `;
+      });
+
+      tableHtml += `
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td>${fmt(totalHours)}</td>
+              <td>${fmt(totalLaborSavings)}</td>
+              <td>${fmt(totalWasteSavings)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      `;
+
+      const summaryHtml = `
+        <p><strong>Temps total gagné :</strong>
+           <span class="highlight">${fmt(totalHours)} h / mois</span></p>
+        <p><strong>Économies main-d’œuvre :</strong>
+           <span class="highlight">${fmt(totalLaborSavings)} $ / mois</span></p>
+        <p><strong>Pertes alimentaires évitées :</strong>
+           <span class="highlight">${fmt(totalWasteSavings)} $ / mois</span></p>
+        <p><strong>Économie totale estimée :</strong>
+           <span class="highlight">${fmt(totalSavings)} $ / mois</span></p>
+        <p>Pour un abonnement de <strong>${fmt(subPrice)} $ / mois</strong>,
+           le gain net est de <strong>${fmt(netGain)} $ / mois</strong>,
+           soit environ <strong>x${fmt(roiMultiple)}</strong> le prix de l’abonnement.</p>
+        ${tableHtml}
+        <p class="note">
+          Ajustez en direct les volumes, le taux horaire et le taux de perte pour coller
+          au fonctionnement réel de l’établissement de votre client.
+        </p>
+      `;
+
+      document.getElementById('results').innerHTML = summaryHtml;
+    }
+  </script>
+</body>
+</html>
